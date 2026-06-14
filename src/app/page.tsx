@@ -73,7 +73,6 @@ export default function Home() {
                 id={component.id}
                 title={component.title}
                 description={component.description}
-                tags={component.tags}
                 demo={entry.demo}
                 code={entry.code}
               />

@@ -53,8 +53,6 @@ export default function FeedbackPopover() {
   return (
     <motion.div
       ref={ref}
-      layout
-      transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
       className="relative flex flex-col-reverse items-center gap-2"
     >
       <motion.button
@@ -64,22 +62,29 @@ export default function FeedbackPopover() {
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
-        className="flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-3.5 py-2 text-sm text-text transition-colors hover:border-border-strong"
+        className="group flex cursor-pointer items-center gap-2 rounded-full border border-border bg-surface-elevated px-3.5 py-2 text-sm transition-colors hover:border-border-strong"
       >
-        <MessageSquarePlus className="size-4 text-muted" />
-        Feedback
+        <MessageSquarePlus className="size-4 text-text" />
+        <span className="text-muted transition-colors group-hover:text-text">
+          Feedback
+        </span>
       </motion.button>
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            layout
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="z-10 w-[min(18rem,calc(100vw-3rem))] origin-bottom overflow-hidden rounded-xl border border-border bg-surface-elevated p-4 shadow-2xl shadow-black/40"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              duration: 0.35,
+              ease: [0.04, 0.62, 0.23, 0.98],
+            }}
+            className="overflow-hidden"
           >
+            <motion.div
+              className="z-10 w-[min(18rem,calc(100vw-3rem))] origin-bottom rounded-xl border border-border bg-surface-elevated p-4 shadow-2xl shadow-black/40"
+            >
             <AnimatePresence mode="popLayout" initial={false}>
               {!submitted ? (
                 <motion.form
@@ -134,7 +139,7 @@ export default function FeedbackPopover() {
                     onChange={(event) => setMessage(event.target.value)}
                     placeholder="Tell us more (optional)"
                     rows={2}
-                    className="w-full resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-subtle focus:border-border-strong focus:outline-none"
+                    className="feedback-textarea-field w-full resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-subtle"
                   />
                   <button
                     type="submit"
@@ -182,6 +187,7 @@ export default function FeedbackPopover() {
                 </motion.div>
               )}
             </AnimatePresence>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

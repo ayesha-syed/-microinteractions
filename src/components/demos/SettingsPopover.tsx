@@ -87,8 +87,6 @@ export default function SettingsPopover() {
   return (
     <motion.div
       ref={ref}
-      layout
-      transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
       className="relative flex flex-col items-center gap-2"
     >
       <motion.button
@@ -98,21 +96,29 @@ export default function SettingsPopover() {
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
-        className="flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-3.5 py-2 text-sm text-text transition-colors hover:border-border-strong"
+        className="group flex cursor-pointer items-center gap-2 rounded-full border border-border bg-surface-elevated px-3.5 py-2 text-sm transition-colors hover:border-border-strong"
       >
-        <SlidersHorizontal className="size-4 text-muted" />
-        Customize
+        <SlidersHorizontal className="size-4 text-text" />
+        <span className="text-muted transition-colors group-hover:text-text">
+          Customize
+        </span>
       </motion.button>
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="z-10 w-[min(18rem,calc(100vw-3rem))] origin-top rounded-xl border border-border bg-surface-elevated p-4 shadow-2xl shadow-black/40"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              duration: 0.35,
+              ease: [0.04, 0.62, 0.23, 0.98],
+            }}
+            className="overflow-hidden"
           >
+            <motion.div
+              className="z-10 w-[min(18rem,calc(100vw-3rem))] origin-top rounded-xl border border-border bg-surface-elevated p-4 shadow-2xl shadow-black/40"
+            >
             <div className="mb-1 flex items-center justify-between text-sm text-text">
               <span className="flex items-center gap-2.5">
                 <Volume2 className="size-4 text-muted" />
@@ -182,6 +188,7 @@ export default function SettingsPopover() {
                 </button>
               ))}
             </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

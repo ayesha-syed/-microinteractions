@@ -47,8 +47,6 @@ export default function SettingsPopover() {
   return (
     <motion.div
       ref={ref}
-      layout
-      transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
       className="relative flex flex-col items-center gap-2"
     >
       <motion.button
@@ -57,18 +55,20 @@ export default function SettingsPopover() {
         transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
         className="settings-trigger"
       >
-        <SlidersHorizontal className="size-4" /> Customize
+        <SlidersHorizontal className="size-4 settings-trigger-icon" />
+        <span className="settings-trigger-label">Customize</span>
       </motion.button>
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="settings-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="overflow-hidden"
           >
+          <div className="settings-panel">
             {/* Draggable slider */}
             <div className="settings-row">
               <span><Volume2 className="size-4" /> Volume</span>
@@ -115,6 +115,7 @@ export default function SettingsPopover() {
                 </button>
               ))}
             </div>
+          </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -186,8 +187,11 @@ export const settingsPopoverHtml = `<div class="settings">
 .settings { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .settings-trigger {
   display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 9999px;
-  border: 1px solid #27272a; background: #1a1a1d; color: #fafafa; font-size: 14px;
+  border: 1px solid #27272a; background: #1a1a1d; color: #fafafa; font-size: 14px; cursor: pointer;
 }
+.settings-trigger-icon { color: #fafafa; }
+.settings-trigger-label { color: #a1a1aa; transition: color 0.15s ease; }
+.settings-trigger:hover .settings-trigger-label { color: #fafafa; }
 /* Renders in normal flow below the trigger, so the column grows (and stays centered
    in a flex-centered stage) instead of overlaying with absolute positioning */
 .settings-panel {

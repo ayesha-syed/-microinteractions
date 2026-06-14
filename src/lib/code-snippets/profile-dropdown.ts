@@ -39,8 +39,6 @@ export default function ProfileDropdown() {
   return (
     <motion.div
       ref={ref}
-      layout
-      transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
       className="relative flex flex-col items-center gap-2"
     >
       <motion.button
@@ -55,15 +53,16 @@ export default function ProfileDropdown() {
         </motion.span>
       </motion.button>
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="dropdown-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="overflow-hidden"
           >
+            <motion.div className="dropdown-panel">
             {menuItems.map((item) => (
               <button
                 key={item.id}
@@ -125,6 +124,7 @@ export default function ProfileDropdown() {
             <button className="dropdown-item dropdown-item--danger">
               <LogOut className="size-4" /> Log out
             </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -25,6 +25,7 @@ export default function CommandMenu() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,6 +57,21 @@ export default function CommandMenu() {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
+  // Close on outside click / Escape
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [open]);
+
   function handleQueryChange(value: string) {
     setQuery(value);
     setActiveIndex(0);
@@ -80,50 +96,53 @@ export default function CommandMenu() {
   }
 
   return (
-    <div>
-      <motion.button
-        layout="position"
-        onClick={openMenu}
+    <motion.div ref={ref} className="relative flex flex-col items-center">
+      {/* The shell only morphs its width and border radius — its height never
+          changes, so this layout animation stays decoupled from the results
+          panel growing in below it. The two pieces sit flush with matching
+          radii so they read as one component. */}
+      <motion.div
+        layout
         transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
-        className="command-trigger"
+        style={{
+          borderTopLeftRadius: open ? 16 : 9999,
+          borderTopRightRadius: open ? 16 : 9999,
+          borderBottomLeftRadius: open ? 0 : 9999,
+          borderBottomRightRadius: open ? 0 : 9999,
+        }}
+        className={\`command-shell \${open ? 'command-shell--open' : 'command-shell--closed'}\`}
       >
-        <Search className="size-4" />
-        Search commands...
-        <kbd>⌘K</kbd>
-      </motion.button>
-
-      <AnimatePresence mode="popLayout">
-        {open && (
+        {open ? (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => setOpen(false)}
-              className="command-overlay"
+            <Search className="size-4 shrink-0" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => handleQueryChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a command or search..."
             />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              initial={{ opacity: 0, scale: 0.96, y: -8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: -8 }}
-              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="command-modal"
-            >
-              <div className="command-input-row">
-                <Search className="size-4" />
-                <input
-                  ref={inputRef}
-                  value={query}
-                  onChange={(e) => handleQueryChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type a command or search..."
-                />
-                <kbd>esc</kbd>
-              </div>
+            <kbd className="shrink-0">esc</kbd>
+          </>
+        ) : (
+          <button type="button" onClick={openMenu} className="command-trigger">
+            <Search className="size-4 shrink-0" />
+            <span className="command-trigger-label">Search commands...</span>
+            <kbd className="shrink-0">⌘K</kbd>
+          </button>
+        )}
+      </motion.div>
 
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="command-results-wrapper"
+          >
+            <div className="command-results">
               <div className="command-list">
                 {filtered.length === 0 && <p className="command-empty">No results found.</p>}
                 {filtered.map((item, index) => {
@@ -168,66 +187,82 @@ export default function CommandMenu() {
                   );
                 })}
               </div>
-            </motion.div>
-          </>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }`;
 
 export const commandMenuHtml = `<div class="command">
-  <button class="command-trigger" id="trigger">
-    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-    Search commands...
-    <kbd>⌘K</kbd>
-  </button>
-
-  <div class="command-overlay" id="overlay" hidden></div>
-  <div class="command-modal" id="modal" role="dialog" aria-modal="true" hidden>
-    <div class="command-input-row">
+  <div class="command-shell command-shell--closed" id="shell">
+    <button class="command-trigger" id="trigger" type="button">
       <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="search" placeholder="Type a command or search..." />
-      <kbd>esc</kbd>
+      <span class="command-trigger-label">Search commands...</span>
+      <kbd>⌘K</kbd>
+    </button>
+  </div>
+  <div class="command-results-wrapper" id="resultsWrapper">
+    <div class="command-results">
+      <div class="command-list" id="list"></div>
     </div>
-    <div class="command-list" id="list"></div>
   </div>
 </div>
 
 <style>
-.command-trigger {
-  display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 9999px;
-  border: 1px solid #27272a; background: #1a1a1d; color: #a1a1aa; font-size: 14px;
+.command { position: relative; display: flex; flex-direction: column; align-items: center; }
+
+/* The shell only morphs its width and border radius — its height never
+   changes, so the trigger reads as a stable element sliding into its
+   new size while the results panel grows in below it. */
+.command-shell {
+  display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+  overflow: hidden; border: 1px solid #27272a; background: #1a1a1d;
+  transition: width 0.35s cubic-bezier(0.04,0.62,0.23,0.98), border-radius 0.35s cubic-bezier(0.04,0.62,0.23,0.98);
 }
-.command-trigger .icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
-.command-trigger kbd, .command-input-row kbd {
+.command-shell--closed { width: fit-content; border-radius: 9999px; }
+.command-shell--closed:hover { border-color: #3f3f46; }
+.command-shell--open {
+  width: 28rem; max-width: calc(100vw - 3rem);
+  border-radius: 16px 16px 0 0; border-bottom: none;
+}
+
+.command-shell .icon { width: 16px; height: 16px; fill: none; stroke: #71717a; stroke-width: 2; flex-shrink: 0; }
+.command-shell input {
+  flex: 1; width: 100%; background: none; border: none; color: #fafafa; font-size: 14px; font-family: inherit;
+}
+.command-shell input:focus,
+.command-shell input:focus-visible {
+  outline: none; border: none; box-shadow: none;
+}
+.command-shell input::placeholder { color: #52525b; }
+.command-shell kbd {
   font-family: monospace; font-size: 11px; color: #71717a; border: 1px solid #27272a;
-  background: #0a0a0b; border-radius: 6px; padding: 2px 6px; margin-left: 4px;
+  background: #0a0a0b; border-radius: 6px; padding: 2px 6px; flex-shrink: 0;
 }
 
-.command-overlay {
-  position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-  opacity: 0; transition: opacity 0.15s ease;
+/* The closed trigger renders the exact same icon/text/kbd row as the open
+   search input, so the shell only resizes — it never changes appearance. */
+.command-trigger {
+  display: flex; width: 100%; align-items: center; gap: 10px; padding: 0; border: none; background: none;
+  color: #71717a; font-size: 14px; cursor: pointer; font-family: inherit;
 }
-.command-overlay.open { opacity: 1; }
+.command-trigger-label { flex: 1; text-align: left; }
 
-.command-modal {
-  position: fixed; top: 18vh; left: 50%; z-index: 50; width: 100%; max-width: 28rem;
-  transform: translateX(-50%) translateY(-8px) scale(0.96); opacity: 0;
-  background: #1a1a1d; border: 1px solid #27272a; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-  transition: transform 0.15s cubic-bezier(0.16,1,0.3,1), opacity 0.15s ease;
+/* Grows in below the shell once it has expanded */
+.command-results-wrapper {
+  width: 28rem; max-width: calc(100vw - 3rem);
+  transform-origin: top center; transform: scale(0.96) translateY(-8px); opacity: 0;
+  transition: transform 0.18s cubic-bezier(0.16,1,0.3,1), opacity 0.18s ease; pointer-events: none;
+  display: none;
 }
-.command-modal.open { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+.command-results-wrapper.open { display: block; transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
 
-.command-input-row { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #27272a; }
-.command-input-row .icon { width: 16px; height: 16px; fill: none; stroke: #71717a; stroke-width: 2; flex-shrink: 0; }
-.command-input-row input {
-  flex: 1; background: none; border: none; color: #fafafa; font-size: 14px; font-family: inherit;
+.command-results {
+  border: 1px solid #27272a; border-top: none; background: #1a1a1d;
+  border-radius: 0 0 16px 16px; overflow: hidden;
 }
-.command-input-row input:focus { outline: none; }
-.command-input-row input::placeholder { color: #52525b; }
-
 .command-list { max-height: 320px; overflow: auto; padding: 8px; }
 .command-empty { padding: 24px 12px; text-align: center; color: #52525b; font-size: 14px; }
 
@@ -260,12 +295,11 @@ const items = [
   { id: 'email', label: 'Compose email', group: 'Create', icon: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>' },
 ];
 
-const trigger = document.getElementById('trigger');
-const overlay = document.getElementById('overlay');
-const modal = document.getElementById('modal');
-const search = document.getElementById('search');
+const shell = document.getElementById('shell');
+const resultsWrapper = document.getElementById('resultsWrapper');
 const list = document.getElementById('list');
 
+let search = null;
 let activeIndex = 0;
 let selectedId = null;
 let filtered = items;
@@ -300,45 +334,56 @@ function select(item) {
   setTimeout(close, 400);
 }
 
+function isOpen() {
+  return shell.classList.contains('command-shell--open');
+}
+
+// The shell only resizes (width + border radius) — the icon, label and kbd
+// stay in the same row and same styling, so swapping the trigger for the
+// search input reads as the bar simply sliding into its new size, while the
+// results panel grows in underneath on its own.
 function open() {
-  overlay.hidden = false;
-  modal.hidden = false;
-  search.value = '';
+  shell.classList.remove('command-shell--closed');
+  shell.classList.add('command-shell--open');
+  shell.innerHTML = \`
+    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="search" placeholder="Type a command or search..." />
+    <kbd>esc</kbd>
+  \`;
+  search = document.getElementById('search');
+  search.addEventListener('input', handleInput);
+  search.addEventListener('keydown', handleKeydown);
+
   selectedId = null;
   activeIndex = 0;
   filtered = items;
   render();
-  requestAnimationFrame(() => {
-    overlay.classList.add('open');
-    modal.classList.add('open');
-    search.focus();
-  });
+  resultsWrapper.classList.add('open');
+  requestAnimationFrame(() => search.focus());
 }
 
 function close() {
-  overlay.classList.remove('open');
-  modal.classList.remove('open');
-  setTimeout(() => { overlay.hidden = true; modal.hidden = true; }, 150);
+  resultsWrapper.classList.remove('open');
+  shell.classList.remove('command-shell--open');
+  shell.classList.add('command-shell--closed');
+  shell.innerHTML = \`
+    <button class="command-trigger" id="trigger" type="button">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <span class="command-trigger-label">Search commands...</span>
+      <kbd>⌘K</kbd>
+    </button>
+  \`;
+  document.getElementById('trigger').addEventListener('click', open);
 }
 
-trigger.addEventListener('click', open);
-overlay.addEventListener('click', close);
-
-document.addEventListener('keydown', (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-    e.preventDefault();
-    modal.hidden ? open() : close();
-  }
-});
-
-search.addEventListener('input', () => {
+function handleInput() {
   const q = search.value.trim().toLowerCase();
   filtered = q ? items.filter((i) => i.label.toLowerCase().includes(q)) : items;
   activeIndex = 0;
   render();
-});
+}
 
-search.addEventListener('keydown', (e) => {
+function handleKeydown(e) {
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     activeIndex = Math.min(activeIndex + 1, filtered.length - 1);
@@ -353,6 +398,19 @@ search.addEventListener('keydown', (e) => {
     if (item) select(item);
   } else if (e.key === 'Escape') {
     close();
+  }
+}
+
+document.getElementById('trigger').addEventListener('click', open);
+
+document.addEventListener('mousedown', (e) => {
+  if (isOpen() && !shell.contains(e.target)) close();
+});
+
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    isOpen() ? close() : open();
   }
 });
 </script>`;

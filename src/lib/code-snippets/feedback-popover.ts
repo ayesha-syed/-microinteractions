@@ -51,8 +51,6 @@ export default function FeedbackPopover() {
   return (
     <motion.div
       ref={ref}
-      layout
-      transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
       className="relative flex flex-col-reverse items-center gap-2"
     >
       <motion.button
@@ -61,19 +59,20 @@ export default function FeedbackPopover() {
         transition={{ layout: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] } }}
         className="feedback-trigger"
       >
-        <MessageSquarePlus className="size-4" /> Feedback
+        <MessageSquarePlus className="size-4 feedback-trigger-icon" />
+        <span className="feedback-trigger-label">Feedback</span>
       </motion.button>
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            layout
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="feedback-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="overflow-hidden"
           >
+          <div className="feedback-panel">
             {/* AnimatePresence cross-fades between the form and the success state */}
             <AnimatePresence mode="popLayout" initial={false}>
               {!submitted ? (
@@ -151,6 +150,7 @@ export default function FeedbackPopover() {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -195,9 +195,12 @@ export const feedbackPopoverHtml = `<div class="feedback" id="feedback">
 .feedback { position: relative; display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; }
 .feedback-trigger {
   display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 9999px;
-  border: 1px solid #27272a; background: #1a1a1d; color: #fafafa; font-size: 14px;
+  border: 1px solid #27272a; background: #1a1a1d; color: #fafafa; font-size: 14px; cursor: pointer;
 }
 .feedback-trigger .icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+.feedback-trigger-icon { color: #fafafa; }
+.feedback-trigger-label { color: #a1a1aa; transition: color 0.15s ease; }
+.feedback-trigger:hover .feedback-trigger-label { color: #fafafa; }
 
 /* Renders in normal flow above the trigger (column-reverse), so the column grows (and stays
    centered in a flex-centered stage) instead of overlaying with absolute positioning */
@@ -231,6 +234,7 @@ export const feedbackPopoverHtml = `<div class="feedback" id="feedback">
   width: 100%; resize: none; border-radius: 8px; border: 1px solid #27272a; background: #0a0a0b;
   color: #fafafa; font-size: 14px; padding: 8px 12px; font-family: inherit;
 }
+.feedback-textarea:focus { border: none; outline-offset: 0; }
 .feedback-textarea::placeholder { color: #52525b; }
 
 .feedback-submit {
