@@ -75,7 +75,7 @@ export default function ProfileDropdown() {
         </motion.span>
       </motion.button>
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
