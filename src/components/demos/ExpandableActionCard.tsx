@@ -13,6 +13,7 @@ import {
 const listVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+  exit: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
 };
 
 const itemVariants = {
@@ -79,6 +80,13 @@ export default function ExpandableActionCard() {
 
       <AnimatePresence initial={false}>
         {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="overflow-hidden"
+          >
           <motion.div
             variants={listVariants}
             initial="hidden"
@@ -184,6 +192,7 @@ export default function ExpandableActionCard() {
               <MessageCircle className="size-4" />
               12
             </motion.span>
+          </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
