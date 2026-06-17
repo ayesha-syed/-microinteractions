@@ -15,7 +15,7 @@ const orbitron = Orbitron({
   weight: ["700", "800"],
 });
 
-const title = "Microinteractions — Fine-tuned UI Interactions";
+const title = "interactionlabs";
 const description =
   "A showcase of smooth, multi-step microinteractions with live demos and copy-paste code in React and vanilla HTML/CSS/JS.";
 

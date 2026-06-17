@@ -85,7 +85,7 @@ export default function ExpandableActionCard() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
-            className="overflow-hidden"
+            className="overflow-hidden px-0.5 py-1 -mx-0.5 -my-1"
           >
           <motion.div
             variants={listVariants}
@@ -177,7 +177,7 @@ export default function ExpandableActionCard() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 4, scale: 0.9 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute -top-9 left-1/2 -translate-x-1/2 rounded-md bg-surface px-2 py-1 text-xs whitespace-nowrap text-text shadow-lg"
+                    className="absolute -top-9 left-1/2 z-50 -translate-x-1/2 rounded-md bg-surface px-2 py-1 text-xs whitespace-nowrap text-text shadow-lg"
                   >
                     Link copied!
                   </motion.span>
